@@ -15,10 +15,18 @@ describe "Authentication" do
     before { visit signin_path }
 
     describe "with invalid information" do
-      before { click_button "Sign in" }
+     let(:user) { FactoryGirl.create(:user) }
+      before do
+        user.password="wrong_passs"
+        valid_signin(user)
+      end
 
       it { should have_selector('title', text: 'Sign in') }
       it { should have_error_message('Invalid') }
+      it { should_not  have_link('Users',    href: users_path) }
+      it { should_not  have_link('Profile') }
+      it { should_not  have_link('Settings') }
+      it { should_not  have_link('Sign out', href: signout_path) }
 
       describe "after visiting another page" do
         before { click_link "Home" }
@@ -39,6 +47,11 @@ describe "Authentication" do
       
       it { should_not have_link('Sign in', href: signin_path) }
 
+      describe "followed by create new user" do
+        before {visit signup_path}
+        it { should_not have_selector('h1',    text: 'Sign up') }
+      end
+
       describe "followed by signout" do
         before { click_link "Sign out" }
         it { should have_link('Sign in') }
@@ -55,9 +68,9 @@ describe "Authentication" do
       describe "when attempting to visit a protected page" do
         before do
           visit edit_user_path(user)
-          fill_in "Email",    with: user.email
-          fill_in "Password", with: user.password
-          click_button "Sign in"
+          
+
+           valid_signin(user)
         end
 
         describe "after signing in" do
@@ -113,7 +126,18 @@ describe "Authentication" do
         specify { response.should redirect_to(root_path) }        
       end
     end
+
+    describe "as admin user delete himself" do
+      
+      let(:admin) { FactoryGirl.create(:user, admin: true) }
+
+      subject{admin}
+      before do
+       sign_in admin 
+       delete user_path(admin)
+      end
+     it {should be_admin}
+     specify { response.should redirect_to(root_path) }   
+    end
   end
-
-
 end
