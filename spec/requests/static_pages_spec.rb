@@ -1,4 +1,7 @@
+
 require 'spec_helper'
+
+
 
 describe "Static pages" do
 
@@ -32,6 +35,24 @@ describe "Static pages" do
           page.should have_selector("li##{item.id}", text: item.content)
         end
       end
+
+      it "should have correct micropost pluralized count" do
+        page.should have_selector("span", text: "2 microposts")
+      end
+
+      describe "micropost pagination" do
+
+      before(:all) { 30.times { FactoryGirl.create(:micropost, user: user) } }
+     
+
+      it { should have_selector('div.pagination') }
+
+      it "should list each user" do
+        user.feed.paginate(page: 1).each do |item|
+          page.should have_selector('li', text: item.content)
+        end
+      end
+    end
     end
   end
 
