@@ -36,23 +36,34 @@ describe "Static pages" do
         end
       end
 
+      describe "follower/following counts" do
+        let(:other_user) { FactoryGirl.create(:user) }
+        before do
+          other_user.follow!(user)
+          visit root_path
+        end
+
+        it { should have_link("0 following", href: following_user_path(user)) }
+        it { should have_link("1 followers", href: followers_user_path(user)) }
+      end
+
       it "should have correct micropost pluralized count" do
         page.should have_selector("span", text: "2 microposts")
       end
 
       describe "micropost pagination" do
 
-      before(:all) { 30.times { FactoryGirl.create(:micropost, user: user) } }
-     
+        before(:all) { 30.times { FactoryGirl.create(:micropost, user: user) } }
+       
 
-      it { should have_selector('div.pagination') }
+        it { should have_selector('div.pagination') }
 
-      it "should list each user" do
-        user.feed.paginate(page: 1).each do |item|
-          page.should have_selector('li', text: item.content)
+        it "should list each user" do
+          user.feed.paginate(page: 1).each do |item|
+            page.should have_selector('li', text: item.content)
+          end
         end
       end
-    end
     end
   end
 
